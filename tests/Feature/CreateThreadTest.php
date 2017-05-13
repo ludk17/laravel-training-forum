@@ -3,32 +3,36 @@
 namespace Tests\Feature;
 
 use App\Thread;
-use App\User;
 use Illuminate\Auth\AuthenticationException;
 use Tests\TestCase;
-use Illuminate\Foundation\Testing\WithoutMiddleware;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
-use Illuminate\Foundation\Testing\DatabaseTransactions;
 
 class CreateThreadTest extends TestCase
 {
     use DatabaseMigrations;
 
     /** @test */
-    public function guest_may_not_create_threads()
+    public function guest_may_not_see_create_threads_page()
     {
         $this->expectException(AuthenticationException::class);
-        $thread = factory(Thread::class)->make();
+        $this->get('/threads/create');
+    }
 
-        $this->post('/threads', $thread->toArray());
+    /** @test */
+    public function guest_cannot_see_the_create_thread_page()
+    {
+        $this->expectException(AuthenticationException::class);
+
+        $this->get('/threads/create')
+            ->redirect('/login');
     }
 
     /** @test */
     public function an_authenticated_user_can_create_new_forum_threads()
     {
-        $this->actingAs(factory(User::class)->create());
+        $this->signIn();
 
-        $thread = factory(Thread::class)->make();
+        $thread = make(Thread::class);
 
         $this->post('/threads', $thread->toArray());
 
@@ -36,4 +40,5 @@ class CreateThreadTest extends TestCase
             ->assertSee($thread->title)
             ->assertSee($thread->body);
     }
+
 }
