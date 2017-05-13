@@ -31,7 +31,7 @@ class ReadThreadsTest extends TestCase
     /** @test */
     public function a_user_can_read_a_single_threads()
     {
-        $this->get('/threads/' . $this->thread->id)
+        $this->get("/threads/{$this->thread->channel->name}/{$this->thread->id}")
             ->assertSee($this->thread->title);
     }
 
@@ -42,7 +42,7 @@ class ReadThreadsTest extends TestCase
         // And that thread includes replies
         $reply = create(Reply::class, ['thread_id' => $this->thread->id]);
         // When we visit a thread page
-        $this->get('/threads/' . $this->thread->id)
+        $this->get("/threads/{$this->thread->channel->name}/{$this->thread->id}")
             ->assertSee($reply->body);
         // Then we should see the replies
     }

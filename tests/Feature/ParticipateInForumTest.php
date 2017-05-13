@@ -17,8 +17,8 @@ class ParticipateInForumTest extends TestCase
     public function unauthenticated_user_may_not_add_replies()
     {
         $this->expectException(AuthenticationException::class);
-
-        $this->post('threads/1/replies', []);
+        $this->disableExceptionHandling()
+            ->post('threads/1/replies', []);
     }
 
     /** @test */
@@ -31,7 +31,7 @@ class ParticipateInForumTest extends TestCase
         $reply = make(Reply::class);
         $this->post('threads/' . $thread->id . '/replies', $reply->toArray());
 
-        $this->get('threads/'. $thread->id)
+        $this->get("threads/{$thread->channel->name}/{$thread->id}")
             ->assertSee($reply->body);
     }
 }
