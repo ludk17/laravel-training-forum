@@ -9,7 +9,7 @@ use Illuminate\Auth\AuthenticationException;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 
-class ParticipateInForumTest extends TestCase
+class ParticipateInThreadsTest extends TestCase
 {
     use DatabaseMigrations;
 
@@ -18,7 +18,7 @@ class ParticipateInForumTest extends TestCase
     {
         $this->expectException(AuthenticationException::class);
         $this->disableExceptionHandling()
-            ->post('threads/1/replies', []);
+            ->post('threads/pg/1/replies', []);
     }
 
     /** @test */
@@ -29,9 +29,29 @@ class ParticipateInForumTest extends TestCase
         $thread = create(Thread::class);
 
         $reply = make(Reply::class);
-        $this->post('threads/' . $thread->id . '/replies', $reply->toArray());
+        $this->post("threads/{$thread->channel->name}/{$thread->id}/replies", $reply->toArray());
 
         $this->get("threads/{$thread->channel->name}/{$thread->id}")
             ->assertSee($reply->body);
+    }
+
+    /** @test */
+    public function a_reply_requires_a_body()
+    {
+        $this->publishReply(['body' => null])
+            ->assertSessionHasErrors();
+    }
+
+    private function publishReply($override = [])
+    {
+        $this->withExceptionHandling()->signIn();
+
+        $thread = create(Thread::class);
+        $reply = make(Reply::class, $override);
+
+        return $this->post(
+            "/threads/{$thread->channel->name}/{$thread->id}/replies",
+            $reply->toArray()
+        );
     }
 }
